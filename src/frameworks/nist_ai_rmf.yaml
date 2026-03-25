@@ -1,0 +1,167 @@
+framework:
+  id: nist_ai_rmf
+  name: NIST AI Risk Management Framework
+  version: "1.0"
+  url: https://airc.nist.gov/RMF
+
+categories:
+  - id: GOVERN
+    name: Govern
+    description: Policies, processes, and accountability for AI risk management
+    controls:
+      - id: GOVERN-1.1
+        name: AI Risk Policy
+        description: >
+          Policies, processes, procedures, and practices across the organization
+          related to the mapping, measuring, and managing of AI risks are in place,
+          transparent, and implemented effectively.
+        keywords: [policy, governance, accountability, oversight, risk management]
+        severity: HIGH
+
+      - id: GOVERN-1.2
+        name: Accountability
+        description: >
+          Organizational teams are committed to transparent, responsible, and
+          explainable AI. Accountability structures are in place.
+        keywords: [accountability, responsible AI, explainability, transparency]
+        severity: HIGH
+
+      - id: GOVERN-2.1
+        name: Roles and Responsibilities
+        description: >
+          Roles and responsibilities for AI risk management are defined, documented,
+          and clearly communicated.
+        keywords: [roles, responsibilities, RACI, ownership, teams]
+        severity: MEDIUM
+
+      - id: GOVERN-4.1
+        name: Organizational Culture
+        description: >
+          Organizational teams committed to a culture that considers and communicates
+          AI risk.
+        keywords: [culture, training, awareness, communication]
+        severity: MEDIUM
+
+  - id: MAP
+    name: Map
+    description: Identify and categorize AI risks in context
+    controls:
+      - id: MAP-1.1
+        name: Context Establishment
+        description: >
+          Context is established for the AI system's risks, including its purpose,
+          intended use cases, and potential harms.
+        keywords: [context, purpose, intended use, use case, scope]
+        severity: HIGH
+
+      - id: MAP-1.5
+        name: Organizational Risk Tolerance
+        description: >
+          Organizational risk tolerances are documented and communicated to AI teams.
+        keywords: [risk tolerance, risk appetite, thresholds]
+        severity: MEDIUM
+
+      - id: MAP-2.1
+        name: Scientific Basis
+        description: >
+          The scientific basis of AI system risks and their likelihood and magnitude
+          are understood and documented.
+        keywords: [scientific, evidence, literature, research, validation]
+        severity: MEDIUM
+
+      - id: MAP-3.1
+        name: Potential Harms
+        description: >
+          Potential harms are identified and documented, including physical, psychological,
+          financial, societal, and reputational harms.
+        keywords: [harm, impact, physical, psychological, financial, societal, bias]
+        severity: HIGH
+
+      - id: MAP-5.1
+        name: Likelihood and Impact
+        description: >
+          Likelihood and magnitude of each identified AI risk is estimated.
+        keywords: [likelihood, impact, probability, magnitude, risk scoring]
+        severity: HIGH
+
+  - id: MEASURE
+    name: Measure
+    description: Analyze and assess AI risks
+    controls:
+      - id: MEASURE-1.1
+        name: Test and Evaluation
+        description: >
+          Approaches and metrics for AI risk measurement are identified and documented.
+          Appropriate testing is in place.
+        keywords: [testing, evaluation, metrics, benchmarks, performance]
+        severity: HIGH
+
+      - id: MEASURE-2.1
+        name: Trustworthy Characteristics
+        description: >
+          Trustworthy AI characteristics (accuracy, fairness, explainability, privacy,
+          reliability, safety, security, transparency) are evaluated.
+        keywords: [accuracy, fairness, explainability, privacy, reliability, safety, security, transparency]
+        severity: HIGH
+
+      - id: MEASURE-2.5
+        name: Bias and Fairness
+        description: >
+          Bias and fairness evaluations are conducted for AI systems.
+        keywords: [bias, fairness, discrimination, demographic, equity]
+        severity: HIGH
+
+      - id: MEASURE-2.6
+        name: Privacy
+        description: >
+          Privacy risks of AI systems are assessed and documented.
+        keywords: [privacy, PII, data protection, personal data, GDPR]
+        severity: HIGH
+
+      - id: MEASURE-2.7
+        name: Security and Resilience
+        description: >
+          Security and robustness of AI systems against adversarial attacks are evaluated.
+        keywords: [security, adversarial, robustness, attack, red team]
+        severity: HIGH
+
+      - id: MEASURE-3.1
+        name: Monitoring
+        description: >
+          AI system performance is monitored and risks are tracked over time.
+        keywords: [monitoring, tracking, drift, performance, alerts]
+        severity: MEDIUM
+
+  - id: MANAGE
+    name: Manage
+    description: Prioritize and address AI risks
+    controls:
+      - id: MANAGE-1.1
+        name: Risk Prioritization
+        description: >
+          Risks are prioritized based on likelihood, impact, and organizational
+          risk tolerance.
+        keywords: [prioritization, triage, risk treatment, mitigation]
+        severity: HIGH
+
+      - id: MANAGE-2.2
+        name: Incident Response
+        description: >
+          Mechanisms are in place to detect, respond to, and recover from AI incidents.
+        keywords: [incident, response, recovery, escalation, playbook]
+        severity: HIGH
+
+      - id: MANAGE-3.1
+        name: Feedback Mechanisms
+        description: >
+          Feedback mechanisms exist for external stakeholders to report AI system issues.
+        keywords: [feedback, reporting, complaints, stakeholder, users]
+        severity: MEDIUM
+
+      - id: MANAGE-4.1
+        name: Post-deployment Monitoring
+        description: >
+          AI systems are monitored after deployment for emerging risks and unexpected
+          behaviors.
+        keywords: [post-deployment, production, monitoring, drift, emergent]
+        severity: HIGH

@@ -1,0 +1,166 @@
+framework:
+  id: eu_ai_act
+  name: EU Artificial Intelligence Act
+  version: "2024"
+  url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689
+
+categories:
+  - id: TRANSPARENCY
+    name: Transparency Obligations
+    description: Requirements for transparency and disclosure of AI systems
+    controls:
+      - id: AIA-13.1
+        name: Transparency to Users
+        description: >
+          High-risk AI systems shall be designed and developed to ensure that their
+          operation is sufficiently transparent to enable providers and deployers
+          to fulfill their obligations.
+        keywords: [transparency, disclosure, explainability, interpretability, user notice]
+        severity: HIGH
+        article: Article 13
+
+      - id: AIA-13.2
+        name: Instructions for Use
+        description: >
+          High-risk AI systems shall be accompanied by instructions for use including
+          intended purpose, performance specifications, and limitations.
+        keywords: [instructions, documentation, intended purpose, limitations, use case]
+        severity: HIGH
+        article: Article 13
+
+      - id: AIA-52.1
+        name: AI Interaction Disclosure
+        description: >
+          Providers of AI systems intended to interact with natural persons shall
+          ensure persons are informed they are interacting with an AI system.
+        keywords: [disclosure, AI interaction, chatbot, automated, notification]
+        severity: HIGH
+        article: Article 52
+
+  - id: RISK_MANAGEMENT
+    name: Risk Management
+    description: Risk management system requirements for high-risk AI
+    controls:
+      - id: AIA-9.1
+        name: Risk Management System
+        description: >
+          A risk management system shall be established, implemented, documented,
+          and maintained for high-risk AI systems throughout the lifecycle.
+        keywords: [risk management, lifecycle, documentation, system]
+        severity: HIGH
+        article: Article 9
+
+      - id: AIA-9.2
+        name: Risk Identification
+        description: >
+          Known and foreseeable risks posed by the AI system shall be identified
+          and analysed.
+        keywords: [risk identification, foreseeable, known risks, analysis]
+        severity: HIGH
+        article: Article 9
+
+      - id: AIA-9.4
+        name: Risk Mitigation
+        description: >
+          Residual risks associated with the AI system shall be evaluated and
+          appropriate risk mitigation measures adopted.
+        keywords: [mitigation, residual risk, controls, safeguards]
+        severity: HIGH
+        article: Article 9
+
+  - id: DATA_GOVERNANCE
+    name: Data and Data Governance
+    description: Requirements for training, validation, and testing data
+    controls:
+      - id: AIA-10.1
+        name: Data Governance Practices
+        description: >
+          High-risk AI systems shall use training, validation, and testing data
+          subject to appropriate data governance and management practices.
+        keywords: [data governance, training data, validation data, data management]
+        severity: HIGH
+        article: Article 10
+
+      - id: AIA-10.2
+        name: Data Quality
+        description: >
+          Training, validation, and testing data sets shall meet quality criteria
+          including relevance, representativeness, and absence of errors.
+        keywords: [data quality, representativeness, bias, errors, completeness]
+        severity: HIGH
+        article: Article 10
+
+      - id: AIA-10.5
+        name: Personal Data
+        description: >
+          Where personal data is processed, it shall be handled in accordance with
+          applicable data protection law.
+        keywords: [personal data, GDPR, data protection, privacy, processing]
+        severity: HIGH
+        article: Article 10
+
+  - id: TECHNICAL_DOCUMENTATION
+    name: Technical Documentation
+    description: Documentation requirements before market placement
+    controls:
+      - id: AIA-11.1
+        name: Technical Documentation
+        description: >
+          Technical documentation shall be drawn up before the high-risk AI system
+          is placed on the market or put into service.
+        keywords: [technical documentation, system description, architecture, design]
+        severity: HIGH
+        article: Article 11
+
+      - id: AIA-12.1
+        name: Logging and Record-Keeping
+        description: >
+          High-risk AI systems shall have the capability to automatically generate
+          logs during their lifetime.
+        keywords: [logging, record keeping, audit trail, traceability, monitoring]
+        severity: HIGH
+        article: Article 12
+
+  - id: HUMAN_OVERSIGHT
+    name: Human Oversight
+    description: Human oversight measures for high-risk AI
+    controls:
+      - id: AIA-14.1
+        name: Human Oversight Measures
+        description: >
+          High-risk AI systems shall be designed and developed to enable effective
+          oversight by natural persons during the period of use.
+        keywords: [human oversight, human control, intervention, override, review]
+        severity: HIGH
+        article: Article 14
+
+      - id: AIA-14.4
+        name: Override Capability
+        description: >
+          Persons responsible for human oversight shall be able to intervene on
+          the operation or interrupt the system via a "stop" button or similar.
+        keywords: [stop, override, interrupt, halt, kill switch]
+        severity: HIGH
+        article: Article 14
+
+  - id: ACCURACY_ROBUSTNESS
+    name: Accuracy, Robustness and Cybersecurity
+    description: Technical performance and security requirements
+    controls:
+      - id: AIA-15.1
+        name: Accuracy
+        description: >
+          High-risk AI systems shall be designed and developed to achieve an
+          appropriate level of accuracy, robustness, and cybersecurity.
+        keywords: [accuracy, performance, metrics, benchmarks, evaluation]
+        severity: HIGH
+        article: Article 15
+
+      - id: AIA-15.3
+        name: Cybersecurity
+        description: >
+          High-risk AI systems shall be resilient against adversarial attacks,
+          data poisoning, and model evasion attempts.
+        keywords: [cybersecurity, adversarial, robustness, attack, red team, security]
+        severity: HIGH
+        article: Article 15

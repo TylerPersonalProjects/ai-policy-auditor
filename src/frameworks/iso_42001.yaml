@@ -1,0 +1,170 @@
+framework:
+  id: iso_42001
+  name: ISO/IEC 42001 AI Management System
+  version: "2023"
+  url: https://www.iso.org/standard/81230.html
+
+categories:
+  - id: CONTEXT
+    name: Context of the Organization
+    description: Understanding the organization and its AI context
+    controls:
+      - id: ISO42001-4.1
+        name: Understanding the Organization
+        description: >
+          The organization shall determine external and internal issues relevant
+          to its purpose that affect its ability to achieve intended outcomes of
+          its AI management system.
+        keywords: [context, organization, issues, stakeholders, environment]
+        severity: MEDIUM
+
+      - id: ISO42001-4.2
+        name: Interested Parties
+        description: >
+          The organization shall determine interested parties relevant to the AI
+          management system and their requirements.
+        keywords: [stakeholders, interested parties, requirements, expectations]
+        severity: MEDIUM
+
+  - id: LEADERSHIP
+    name: Leadership
+    description: Leadership commitment and AI policy
+    controls:
+      - id: ISO42001-5.1
+        name: Leadership Commitment
+        description: >
+          Top management shall demonstrate leadership and commitment with respect
+          to the AI management system.
+        keywords: [leadership, management, commitment, sponsorship, executive]
+        severity: HIGH
+
+      - id: ISO42001-5.2
+        name: AI Policy
+        description: >
+          Top management shall establish an AI policy appropriate to the purpose
+          of the organization.
+        keywords: [policy, AI policy, principles, values, ethics]
+        severity: HIGH
+
+  - id: PLANNING
+    name: Planning
+    description: Risk and opportunity assessment for AI systems
+    controls:
+      - id: ISO42001-6.1
+        name: Actions to Address Risk
+        description: >
+          The organization shall plan actions to address risks and opportunities
+          relating to AI systems.
+        keywords: [risk, opportunities, planning, treatment, actions]
+        severity: HIGH
+
+      - id: ISO42001-6.1.2
+        name: AI Risk Assessment
+        description: >
+          The organization shall establish and maintain a process to assess AI risks
+          including identification, analysis, and evaluation.
+        keywords: [risk assessment, identification, analysis, evaluation, register]
+        severity: HIGH
+
+      - id: ISO42001-6.2
+        name: AI Objectives
+        description: >
+          The organization shall establish AI objectives consistent with its AI policy.
+        keywords: [objectives, goals, KPIs, targets, metrics]
+        severity: MEDIUM
+
+  - id: SUPPORT
+    name: Support
+    description: Resources, competence, and communication for AI management
+    controls:
+      - id: ISO42001-7.1
+        name: Resources
+        description: >
+          The organization shall determine and provide resources needed for the
+          establishment and operation of the AI management system.
+        keywords: [resources, budget, personnel, infrastructure, tools]
+        severity: MEDIUM
+
+      - id: ISO42001-7.2
+        name: Competence
+        description: >
+          Personnel performing work affecting AI system performance shall be
+          competent on the basis of appropriate education, training, or experience.
+        keywords: [competence, training, skills, education, qualifications]
+        severity: MEDIUM
+
+      - id: ISO42001-7.4
+        name: Communication
+        description: >
+          The organization shall determine internal and external communication
+          needs relevant to the AI management system.
+        keywords: [communication, awareness, internal, external, stakeholders]
+        severity: MEDIUM
+
+  - id: OPERATION
+    name: Operation
+    description: Operational controls and AI system lifecycle
+    controls:
+      - id: ISO42001-8.1
+        name: Operational Planning and Control
+        description: >
+          The organization shall plan, implement, control and maintain processes
+          needed to meet requirements for its AI systems.
+        keywords: [operational, processes, controls, lifecycle, deployment]
+        severity: HIGH
+
+      - id: ISO42001-8.2
+        name: AI System Impact Assessment
+        description: >
+          The organization shall conduct an impact assessment for AI systems before
+          deployment.
+        keywords: [impact assessment, pre-deployment, evaluation, review]
+        severity: HIGH
+
+      - id: ISO42001-8.4
+        name: AI System Documentation
+        description: >
+          The organization shall document AI systems including intended purpose,
+          design, training, testing, and deployment information.
+        keywords: [documentation, model card, system card, design, training, testing]
+        severity: HIGH
+
+  - id: PERFORMANCE
+    name: Performance Evaluation
+    description: Monitoring, measurement, and review of AI management system
+    controls:
+      - id: ISO42001-9.1
+        name: Monitoring and Measurement
+        description: >
+          The organization shall monitor, measure, analyze, and evaluate its AI
+          systems and AI management system performance.
+        keywords: [monitoring, measurement, KPIs, metrics, performance, evaluation]
+        severity: HIGH
+
+      - id: ISO42001-9.2
+        name: Internal Audit
+        description: >
+          The organization shall conduct internal audits at planned intervals to
+          assess the AI management system.
+        keywords: [audit, internal audit, review, assessment, compliance]
+        severity: MEDIUM
+
+  - id: IMPROVEMENT
+    name: Improvement
+    description: Continual improvement of the AI management system
+    controls:
+      - id: ISO42001-10.1
+        name: Nonconformity and Corrective Action
+        description: >
+          When nonconformity occurs, the organization shall take action to control
+          and correct it.
+        keywords: [corrective action, nonconformity, incident, remediation, improvement]
+        severity: MEDIUM
+
+      - id: ISO42001-10.2
+        name: Continual Improvement
+        description: >
+          The organization shall continually improve the suitability, adequacy,
+          and effectiveness of the AI management system.
+        keywords: [continual improvement, lessons learned, feedback, iteration]
+        severity: MEDIUM

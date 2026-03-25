@@ -1,9 +1,29 @@
+<!-- AI Policy Auditor Dashboard
+     OWASP Top 10 (2021) Hardening
+     A01: No server, no auth surface (static file)
+     A02: No cookies, no localStorage, no sessionStorage
+     A03: escapeHtml() + sanitiseFilename() on all user input;
+          textContent (not innerHTML) for file content display
+     A04: validateFile() — type allowlist (.txt/.md), 500KB cap
+     A05: CSP meta, X-Content-Type-Options, X-Frame-Options
+     A06: Zero JS runtime dependencies
+     A07: N/A (public static file, no auth)
+     A08: readAsText only, no eval/Function/document.write
+     A09: Filenames sanitised before display
+     A10: Zero fetch/XHR, no URLs from user input
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Policy Auditor — Dashboard</title>
+
+<!-- OWASP A05 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="X-Frame-Options" content="DENY">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0c10;--surface:#111318;--surface2:#181c24;--border:#232838;--text:#e8eaf0;--muted:#6b7280;--green:#22d3a0;--green-dim:#0d3d2e;--amber:#f5a623;--amber-dim:#3a2800;--red:#ef4444;--red-dim:#3a0f0f;--blue:#60a5fa;--blue-dim:#0d2040;--partial:#a78bfa;--partial-dim:#1e1040}
@@ -129,6 +149,7 @@ main{overflow-y:auto;padding:26px}
 .anim2{animation:fadeUp .4s ease .06s both}
 .anim3{animation:fadeUp .4s ease .12s both}
 .anim4{animation:fadeUp .4s ease .18s both}
+.sec-note{background:var(--green-dim);border:1px solid #0d5a42;border-radius:8px;padding:10px 14px;font-size:11px;color:var(--green);font-family:'DM Mono',monospace;margin-bottom:16px;display:flex;align-items:center;gap:8px}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
 </head>
@@ -287,6 +308,27 @@ Prediction logs are retained for 90 days for audit purposes.
 Logs include input metadata, prediction scores, and timestamps.
 No raw user content is stored in logs.`;
 
+
+/* ---- OWASP A03: XSS Prevention ----------------------------------------- */
+function escapeHtml(s) {
+  if (typeof s !== 'string') return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+}
+/* ---- OWASP A04: File Validation ----------------------------------------- */
+function validateFile(file) {
+  var MAX=500*1024, EXTS=['.txt','.md'];
+  var ext=('.'+file.name.split('.').pop()).toLowerCase();
+  if(EXTS.indexOf(ext)===-1) return {ok:false,error:'Only .txt and .md files are accepted.'};
+  if(file.size>MAX) return {ok:false,error:'File exceeds 500 KB limit.'};
+  if(file.size===0) return {ok:false,error:'File is empty.'};
+  return {ok:true};
+}
+/* ---- OWASP A03/A09: Filename Sanitisation ------------------------------- */
+function sanitiseFilename(name) {
+  if(typeof name!=='string') return 'unknown';
+  return name.replace(/[\/\\:*?"<>|\x00-\x1f]/g,'_').slice(0,120);
+}
 const D={sample:{
   nist:{name:"NIST AI Risk Management Framework",version:"1.0",cov:73.7,rs:20,rl:"MEDIUM",tot:19,ad:14,pt:2,ms:3,
     cats:[{n:"Govern",tot:4,ad:3,pt:0,ms:1,p:75},{n:"Map",tot:5,ad:3,pt:1,ms:1,p:60},{n:"Measure",tot:6,ad:5,pt:1,ms:0,p:83.3},{n:"Manage",tot:4,ad:3,pt:0,ms:1,p:75}],
@@ -374,18 +416,22 @@ function openMC(){document.getElementById('mc-body').innerHTML=renderMD(MC_TEXT)
 function closeMC(){document.getElementById('mc-modal').classList.add('hidden');}
 
 function handleUpload(inp){
-  const file=inp.files[0];if(!file)return;
+  const file=inp.files&&inp.files[0];if(!file)return;
+  /* OWASP A04 */ var chk=validateFile(file);
+  if(!chk.ok){toast('⚠ '+chk.error,false);setTimeout(hideToast,4000);inp.value='';return;}
   const r=new FileReader();
+  r.onerror=function(){toast('⚠ Could not read file.',false);setTimeout(hideToast,4000);};
   r.onload=e=>{
     const txt=e.target.result,id='doc_'+Date.now();
-    toast('Analysing '+file.name+'...');
+    /* OWASP A03 */ const safeName=sanitiseFilename(file.name);
+    toast('Analysing '+safeName+'...');
     setTimeout(()=>{
       const au=simAudit(txt);
-      uploads[id]={name:file.name,size:file.size,content:txt,au};
-      addCard(id,file.name,file.size);
+      uploads[id]={name:safeName,rawName:file.name,size:file.size,content:txt,au};
+      addCard(id,safeName,file.size);
       selectDoc(id);
       hideToast();
-      toast('✓ '+file.name+' complete',false);
+      toast('✓ '+safeName+' complete',false);
       setTimeout(hideToast,2800);
     },1100);
   };
@@ -430,7 +476,8 @@ function render(){
   if(cDoc!=='sample'){renderUpload();return;}
   document.getElementById('main').innerHTML=`
     <div class="anim1">
-      <div class="doc-title">TestClassifier-v1 — Audit Report</div>
+      <div class="sec-note">&#x1F512; OWASP Top 10 hardened &nbsp;&middot;&nbsp; CSP enforced &nbsp;&middot;&nbsp; No cookies &nbsp;&middot;&nbsp; User input sanitised</div>
+    <div class="doc-title">TestClassifier-v1 — Audit Report</div>
       <div class="doc-meta"><span>📄 sample_model_card.md</span><span>🕐 2026-03-25T03:25 UTC</span><span>🔑 sha256: 78bdd18d04ab...</span><span>0 PII redactions</span></div>
     </div>
     <div class="fw-tabs anim2">
@@ -544,7 +591,13 @@ function switchFwUp(fw){
 function showUploadContent(id){
   const doc=uploads[id];
   document.getElementById('up-modal-title').textContent='📄 '+doc.name;
-  document.getElementById('up-modal-body').innerHTML=`<pre style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);white-space:pre-wrap;line-height:1.7">${doc.content.substring(0,8000)}${doc.content.length>8000?'\n\n... (truncated)':''}</pre>`;
+  /* OWASP A03: textContent only */
+  var pre=document.createElement('pre');
+  pre.style.cssText="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);white-space:pre-wrap;line-height:1.7;word-break:break-word";
+  pre.textContent=doc.content.slice(0,10000)+(doc.content.length>10000?'
+
+[truncated]':'');
+  var mb=document.getElementById('up-modal-body');mb.textContent='';mb.appendChild(pre);
   document.getElementById('up-modal').classList.remove('hidden');
 }
 

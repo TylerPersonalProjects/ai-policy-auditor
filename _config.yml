@@ -1,0 +1,3 @@
+# Disable Jekyll processing — serve files as-is
+# Required for GitHub Pages to correctly serve dashboard.html with its CSP meta tags
+plugins: []

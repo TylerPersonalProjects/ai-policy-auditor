@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Policy Auditor — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0c10;--surface:#111318;--surface2:#181c24;--border:#232838;--text:#e8eaf0;--muted:#6b7280;--green:#22d3a0;--green-dim:#0d3d2e;--amber:#f5a623;--amber-dim:#3a2800;--red:#ef4444;--red-dim:#3a0f0f;--blue:#60a5fa;--blue-dim:#0d2040;--partial:#a78bfa;--partial-dim:#1e1040}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:.4}
+.app{display:grid;grid-template-columns:280px 1fr;grid-template-rows:54px 1fr;min-height:100vh}
+header{grid-column:1/-1;border-bottom:1px solid var(--border);padding:0 22px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,12,16,.96);backdrop-filter:blur(12px);z-index:100;position:sticky;top:0}
+.logo{display:flex;align-items:center;gap:9px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}
+.logo-icon{width:26px;height:26px;background:linear-gradient(135deg,var(--green),#0ea5e9);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.logo-name{color:var(--text);font-weight:500}
+.upload-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .2s}
+.upload-btn:hover{border-color:#3a4055;background:var(--surface2)}
+aside{border-right:1px solid var(--border);overflow-y:auto;background:var(--surface)}
+.sb{padding:14px;border-bottom:1px solid var(--border)}
+.sb-label{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:10px}
+.doc-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px;cursor:pointer;transition:all .2s;margin-bottom:6px}
+.doc-card:hover{border-color:#3a4055}
+.doc-card.active{border-color:var(--blue);background:var(--blue-dim)}
+.doc-card-name{font-size:12px;font-weight:500;margin-bottom:2px}
+.doc-card-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
+.doc-card-badges{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.fw-badge{font-size:9px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--muted)}
+.fw-badge.on{background:var(--blue-dim);color:var(--blue);border-color:#1a3a6a}
+.drop-zone{border:1.5px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.drop-zone:hover,.drop-zone.over{border-color:var(--blue);background:var(--blue-dim)}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-zone-icon{font-size:20px;margin-bottom:5px}
+.drop-zone-text{font-size:11px;color:var(--muted)}
+.drop-zone-text strong{color:var(--text);display:block;margin-bottom:1px}
+.view-btn{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;text-align:left;transition:all .2s;display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.view-btn:hover{border-color:#3a4055;color:var(--text);background:var(--surface2)}
+.sb-stat{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border)}
+.sb-stat:last-child{border-bottom:none}
+main{overflow-y:auto;padding:26px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:700px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-header{padding:15px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Fraunces',serif;font-size:16px;font-weight:600}
+.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:17px;padding:3px 8px;border-radius:5px;transition:all .15s}
+.modal-close:hover{background:var(--surface2);color:var(--text)}
+.modal-body{overflow-y:auto;padding:18px;flex:1}
+.md-h1{font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--text);margin:0 0 8px}
+.md-h2{font-family:'Fraunces',serif;font-size:14px;font-weight:600;color:var(--text);margin:14px 0 5px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.md-p{color:var(--muted);font-size:13px;margin-bottom:7px;line-height:1.7}
+.md-li{color:var(--muted);font-size:13px;margin-left:14px;margin-bottom:2px}
+.md-li::before{content:"—";margin-right:6px;color:var(--border)}
+.md-bold{color:var(--text);font-weight:500}
+.md-gap{height:5px}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 16px;z-index:300;font-size:12px;display:flex;align-items:center;gap:9px;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:all .3s}
+.toast.hidden{opacity:0;transform:translateY(8px);pointer-events:none}
+.spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.doc-title{font-family:'Fraunces',serif;font-size:24px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px}
+.doc-meta{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.fw-tabs{display:flex;gap:4px;margin-bottom:18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px;width:fit-content}
+.tab{padding:6px 14px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);transition:all .2s;border:none;background:none}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.active{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.summary-row{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:18px}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px;position:relative;overflow:hidden;transition:border-color .2s}
+.sc:hover{border-color:#3a4055}
+.sc-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;font-family:'DM Mono',monospace}
+.sc-val{font-family:'Fraunces',serif;font-size:24px;font-weight:600;line-height:1}
+.sc-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.glow{position:absolute;bottom:-18px;right:-18px;width:60px;height:60px;border-radius:50%;filter:blur(25px);opacity:.22}
+.rm .sc-val{color:var(--amber)}.rm .glow{background:var(--amber)}
+.rh .sc-val{color:var(--red)}.rh .glow{background:var(--red)}
+.rl .sc-val{color:var(--green)}.rl .glow{background:var(--green)}
+.va .sc-val{color:var(--green)}.vp .sc-val{color:var(--partial)}.vm .sc-val{color:var(--red)}
+.rbar{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 18px;margin-bottom:18px}
+.rbar-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.rbar-label span:first-child{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em}
+.rbar-track{height:6px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.rbar-fill{height:100%;border-radius:99px;transition:width 1s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,var(--green) 0%,var(--amber) 50%,var(--red) 100%)}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:18px}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:13px;transition:border-color .2s}
+.cc:hover{border-color:#3a4055}
+.cc-name{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:9px}
+.cc-wrap{display:flex;align-items:center;gap:11px}
+.cc-stats{font-size:11px;color:var(--muted);line-height:1.9}
+.cc-pct{font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--text)}
+.s-ok{color:var(--green)}.s-pt{color:var(--partial)}.s-ms{color:var(--red)}
+.ctrl-section{margin-top:4px}
+.ctrl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.ctrl-title{font-family:'Fraunces',serif;font-size:16px;font-weight:600}
+.filter-row{display:flex;gap:4px}
+.fb{font-size:10px;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:5px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);transition:all .15s}
+.fb:hover{border-color:#3a4055;color:var(--text)}
+.fb.active{background:var(--surface2);color:var(--text);border-color:#3a4055}
+.ctrl-list{display:flex;flex-direction:column;gap:5px}
+.cr{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 13px;display:grid;grid-template-columns:8px 90px 1fr auto auto;gap:11px;align-items:center;cursor:pointer;transition:all .15s}
+.cr:hover,.cr.expanded{border-color:#3a4055;background:var(--surface2)}
+.dot{width:7px;height:7px;border-radius:50%}
+.dot.ADDRESSED{background:var(--green);box-shadow:0 0 5px var(--green)}
+.dot.PARTIAL{background:var(--partial);box-shadow:0 0 5px var(--partial)}
+.dot.MISSING{background:var(--red);box-shadow:0 0 5px var(--red)}
+.cid{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
+.cn{font-size:13px;font-weight:500}
+.ccat{font-size:11px;color:var(--muted)}
+.sev{font-size:9px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:3px;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.sev-HIGH{background:var(--red-dim);color:var(--red);border:1px solid #5a1a1a}
+.sev-MEDIUM{background:var(--amber-dim);color:var(--amber);border:1px solid #5a3a00}
+.sev-LOW{background:var(--blue-dim);color:var(--blue);border:1px solid #0d3060}
+.slabel{font-size:9px;font-family:'DM Mono',monospace;font-weight:500;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em}
+.slabel.ADDRESSED{background:var(--green-dim);color:var(--green)}
+.slabel.PARTIAL{background:var(--partial-dim);color:var(--partial)}
+.slabel.MISSING{background:var(--red-dim);color:var(--red)}
+.sbar{width:46px;height:3px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:4px}
+.sf{height:100%;border-radius:99px;background:var(--green)}
+.sf.low{background:var(--amber)}.sf.zero{background:var(--red)}
+.detail{display:none;grid-column:1/-1;padding-top:9px;border-top:1px solid var(--border);margin-top:3px}
+.cr.expanded .detail{display:block}
+.dd{color:var(--muted);font-size:12px;margin-bottom:7px}
+.kws{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px}
+.kw{font-size:10px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:3px;background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.kw.m{background:var(--green-dim);color:var(--green);border-color:#0d5a42}
+.ev{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);line-height:1.7;white-space:pre-wrap}
+.empty{text-align:center;padding:32px;color:var(--muted);font-size:13px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}
+.anim1{animation:fadeUp .4s ease both}
+.anim2{animation:fadeUp .4s ease .06s both}
+.anim3{animation:fadeUp .4s ease .12s both}
+.anim4{animation:fadeUp .4s ease .18s both}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">
+    <div class="logo-icon">🔐</div>
+    <span class="logo-name">ai-policy-auditor</span>
+    <span style="color:var(--border);margin:0 4px">|</span>
+    <span>results dashboard</span>
+  </div>
+  <button class="upload-btn" onclick="document.getElementById('hup').click()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Upload Document
+  </button>
+  <input type="file" id="hup" accept=".txt,.md,.pdf,.docx,.json" style="display:none" onchange="handleUpload(this)">
+</header>
+
+<aside>
+  <div class="sb">
+    <div class="sb-label">Documents</div>
+    <div id="doc-list">
+      <div class="doc-card active" id="doc-card-sample" onclick="selectDoc('sample')">
+        <div class="doc-card-name">📄 sample_model_card.md</div>
+        <div class="doc-card-meta">2,641 bytes · 2026-03-25</div>
+        <div class="doc-card-badges">
+          <span class="fw-badge on">NIST</span>
+          <span class="fw-badge on">EU AI Act</span>
+          <span class="fw-badge on">ISO 42001</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sb">
+    <div class="sb-label">Upload Document</div>
+    <div class="drop-zone" id="dz">
+      <input type="file" id="sup" accept=".txt,.md,.pdf,.docx,.json" onchange="handleUpload(this)">
+      <div class="drop-zone-icon">📂</div>
+      <div class="drop-zone-text"><strong>Drop file here or click</strong>.txt · .md · .pdf · .docx</div>
+    </div>
+    <button class="view-btn" onclick="openMC()">
+      <span>📄 View sample model card</span><span>→</span>
+    </button>
+  </div>
+  <div class="sb">
+    <div class="sb-label">Framework Coverage</div>
+    <div id="sb-fw-stats">
+      <div class="sb-stat"><span>NIST AI RMF</span><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green)">73.7%</span></div>
+      <div class="sb-stat"><span>EU AI Act</span><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--amber)">53.3%</span></div>
+      <div class="sb-stat"><span>ISO 42001</span><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--amber)">41.2%</span></div>
+    </div>
+  </div>
+</aside>
+
+<main id="main"></main>
+</div>
+
+<!-- Model card modal -->
+<div class="modal-overlay hidden" id="mc-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📄 sample_model_card.md</div>
+      <button class="modal-close" onclick="closeMC()">✕</button>
+    </div>
+    <div class="modal-body" id="mc-body"></div>
+  </div>
+</div>
+
+<!-- Upload preview modal -->
+<div class="modal-overlay hidden" id="up-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="up-modal-title">Uploaded Document</div>
+      <button class="modal-close" onclick="document.getElementById('up-modal').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-body" id="up-modal-body"></div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast">
+  <div class="spinner" id="t-spin"></div>
+  <span id="t-msg">Processing...</span>
+</div>
+
+<script>
+const MC_TEXT=`# Sample Model Card — Test Fixture
+
+This is a synthetic model card used for integration testing.
+It intentionally addresses some controls and omits others.
+
+## Model Overview
+
+**Model name:** TestClassifier-v1
+**Version:** 1.0.0
+**Type:** Binary text classification
+**Intended use:** Detect policy violations in user-generated content
+
+## Intended Use and Limitations
+
+This model is intended for internal content moderation use only.
+It should not be used for high-stakes decisions affecting individuals
+without human review. Known limitations include reduced accuracy on
+non-English text and low-resource dialects.
+
+## Risk Management
+
+A risk assessment was conducted prior to deployment. Known risks include:
+- False positives that incorrectly flag benign content
+- Performance degradation on out-of-distribution inputs
+- Potential for disparate impact across demographic groups
+
+Risk tolerance thresholds are documented in the internal risk register.
+
+## Fairness and Bias
+
+Bias evaluations were performed across gender, age, and geographic categories.
+Fairness metrics (demographic parity, equalised odds) are monitored monthly.
+Disparate impact analysis showed acceptable performance across tested groups.
+
+## Data Governance
+
+Training data was sourced from internal logs with appropriate consent.
+Personal data was pseudonymised prior to use. Data quality checks
+were applied to remove duplicates and mislabelled examples.
+Data governance practices follow the organisation's data policy.
+
+## Security and Robustness
+
+Adversarial robustness testing was performed using a red-team exercise.
+The model showed resilience to common text perturbation attacks.
+Security review completed by the InfoSec team on 2024-01-15.
+
+## Transparency
+
+This model card was prepared to enable transparent assessment by deployers.
+The model's decision logic is not directly interpretable (black-box),
+but SHAP explanations are available for individual predictions.
+Users are notified when automated decisions are made using this model.
+
+## Monitoring
+
+Post-deployment monitoring is in place. Accuracy and fairness metrics
+are tracked via a real-time dashboard. Drift alerts are configured
+to trigger when performance degrades more than 5% from baseline.
+
+## Incident Response
+
+An incident response playbook exists for model-related incidents.
+Escalation paths and contact information are documented.
+The organisation has a feedback mechanism for users to report issues.
+
+## Logging
+
+Prediction logs are retained for 90 days for audit purposes.
+Logs include input metadata, prediction scores, and timestamps.
+No raw user content is stored in logs.`;
+
+const D={sample:{
+  nist:{name:"NIST AI Risk Management Framework",version:"1.0",cov:73.7,rs:20,rl:"MEDIUM",tot:19,ad:14,pt:2,ms:3,
+    cats:[{n:"Govern",tot:4,ad:3,pt:0,ms:1,p:75},{n:"Map",tot:5,ad:3,pt:1,ms:1,p:60},{n:"Measure",tot:6,ad:5,pt:1,ms:0,p:83.3},{n:"Manage",tot:4,ad:3,pt:0,ms:1,p:75}],
+    ctrls:[
+      {id:"GOVERN-1.1",n:"AI Risk Policy",cat:"Govern",sev:"HIGH",st:"ADDRESSED",sc:0.92,kw:["policy","governance","accountability","oversight","risk management"],mk:["policy","governance","risk management"],ev:"...related to the mapping, measuring, and managing of AI risks are in place..."},
+      {id:"GOVERN-1.2",n:"Accountability",cat:"Govern",sev:"HIGH",st:"ADDRESSED",sc:0.38,kw:["accountability","responsible AI","explainability","transparency"],mk:["transparency"],ev:"...This model card was prepared to enable transparent assessment by deployers..."},
+      {id:"GOVERN-2.1",n:"Roles and Responsibilities",cat:"Govern",sev:"MEDIUM",st:"MISSING",sc:0,kw:["roles","responsibilities","RACI","ownership","teams"],mk:[],ev:""},
+      {id:"GOVERN-4.1",n:"Organizational Culture",cat:"Govern",sev:"MEDIUM",st:"ADDRESSED",sc:0.38,kw:["culture","training","awareness","communication"],mk:["training"],ev:"...Training data was sourced from internal logs with appropriate consent..."},
+      {id:"MAP-1.1",n:"Context Establishment",cat:"Map",sev:"HIGH",st:"ADDRESSED",sc:0.61,kw:["context","purpose","intended use","use case","scope"],mk:["purpose","intended use"],ev:"...Intended use: Detect policy violations in user-generated content..."},
+      {id:"MAP-1.5",n:"Organizational Risk Tolerance",cat:"Map",sev:"MEDIUM",st:"ADDRESSED",sc:1.0,kw:["risk tolerance","risk appetite","thresholds"],mk:["risk tolerance","thresholds"],ev:"...Risk tolerance thresholds are documented in the internal risk register..."},
+      {id:"MAP-2.1",n:"Scientific Basis",cat:"Map",sev:"MEDIUM",st:"MISSING",sc:0,kw:["scientific","evidence","literature","research","validation"],mk:[],ev:""},
+      {id:"MAP-3.1",n:"Potential Harms",cat:"Map",sev:"HIGH",st:"ADDRESSED",sc:0.44,kw:["harm","impact","physical","psychological","financial","societal","bias"],mk:["impact","bias"],ev:"...Potential for disparate impact across demographic groups..."},
+      {id:"MAP-5.1",n:"Likelihood and Impact",cat:"Map",sev:"HIGH",st:"PARTIAL",sc:0.31,kw:["likelihood","impact","probability","magnitude","risk scoring"],mk:["impact"],ev:"...Potential for disparate impact across demographic groups..."},
+      {id:"MEASURE-1.1",n:"Test and Evaluation",cat:"Measure",sev:"HIGH",st:"ADDRESSED",sc:1.0,kw:["testing","evaluation","metrics","benchmarks","performance"],mk:["testing","evaluation","metrics","performance"],ev:"...Fairness metrics (demographic parity, equalised odds) are monitored monthly..."},
+      {id:"MEASURE-2.1",n:"Trustworthy Characteristics",cat:"Measure",sev:"HIGH",st:"ADDRESSED",sc:0.77,kw:["accuracy","fairness","explainability","privacy","reliability","safety","security","transparency"],mk:["accuracy","fairness","security","transparency"],ev:"...reduced accuracy on non-English text... fairness metrics... security review completed..."},
+      {id:"MEASURE-2.5",n:"Bias and Fairness",cat:"Measure",sev:"HIGH",st:"ADDRESSED",sc:0.92,kw:["bias","fairness","discrimination","demographic","equity"],mk:["bias","fairness","demographic"],ev:"...Bias evaluations were performed across gender, age, and geographic categories..."},
+      {id:"MEASURE-2.6",n:"Privacy",cat:"Measure",sev:"HIGH",st:"PARTIAL",sc:0.31,kw:["privacy","PII","data protection","personal data","GDPR"],mk:["personal data"],ev:"...Personal data was pseudonymised prior to use..."},
+      {id:"MEASURE-2.7",n:"Security and Resilience",cat:"Measure",sev:"HIGH",st:"ADDRESSED",sc:1.0,kw:["security","adversarial","robustness","attack","red team"],mk:["security","adversarial","robustness","attack"],ev:"...Adversarial robustness testing was performed using a red-team exercise..."},
+      {id:"MEASURE-3.1",n:"Monitoring",cat:"Measure",sev:"MEDIUM",st:"ADDRESSED",sc:1.0,kw:["monitoring","tracking","drift","performance","alerts"],mk:["monitoring","drift","performance","alerts"],ev:"...Drift alerts are configured to trigger when performance degrades more than 5% from baseline..."},
+      {id:"MANAGE-1.1",n:"Risk Prioritization",cat:"Manage",sev:"HIGH",st:"MISSING",sc:0,kw:["prioritization","triage","risk treatment","mitigation"],mk:[],ev:""},
+      {id:"MANAGE-2.2",n:"Incident Response",cat:"Manage",sev:"HIGH",st:"ADDRESSED",sc:1.0,kw:["incident","response","recovery","escalation","playbook"],mk:["incident","response","escalation","playbook"],ev:"...An incident response playbook exists for model-related incidents. Escalation paths are documented..."},
+      {id:"MANAGE-3.1",n:"Feedback Mechanisms",cat:"Manage",sev:"MEDIUM",st:"ADDRESSED",sc:0.61,kw:["feedback","reporting","complaints","stakeholder","users"],mk:["feedback","users"],ev:"...The organisation has a feedback mechanism for users to report issues..."},
+      {id:"MANAGE-4.1",n:"Post-deployment Monitoring",cat:"Manage",sev:"HIGH",st:"ADDRESSED",sc:0.92,kw:["post-deployment","production","monitoring","drift","emergent"],mk:["post-deployment","monitoring","drift"],ev:"...Post-deployment monitoring is in place. Accuracy and fairness metrics tracked via real-time dashboard..."},
+    ]},
+  eu:{name:"EU Artificial Intelligence Act",version:"2024",cov:53.3,rs:30,rl:"MEDIUM",tot:15,ad:8,pt:5,ms:2,
+    cats:[{n:"Transparency",tot:3,ad:2,pt:1,ms:0,p:66.7},{n:"Risk Management",tot:3,ad:1,pt:1,ms:1,p:33.3},{n:"Data Governance",tot:3,ad:2,pt:1,ms:0,p:66.7},{n:"Technical Docs",tot:2,ad:1,pt:1,ms:0,p:50},{n:"Human Oversight",tot:2,ad:1,pt:1,ms:0,p:50},{n:"Accuracy/Robustness",tot:2,ad:1,pt:0,ms:1,p:50}],
+    ctrls:[
+      {id:"AIA-13.1",n:"Transparency to Users",cat:"Transparency",sev:"HIGH",st:"ADDRESSED",sc:0.72,kw:["transparency","disclosure","explainability","interpretability","user notice"],mk:["transparency","explainability"],ev:"...This model card was prepared to enable transparent assessment by deployers..."},
+      {id:"AIA-13.2",n:"Instructions for Use",cat:"Transparency",sev:"HIGH",st:"ADDRESSED",sc:0.65,kw:["instructions","documentation","intended purpose","limitations","use case"],mk:["intended purpose","limitations"],ev:"...Known limitations include reduced accuracy on non-English text..."},
+      {id:"AIA-52.1",n:"AI Interaction Disclosure",cat:"Transparency",sev:"HIGH",st:"PARTIAL",sc:0.22,kw:["disclosure","AI interaction","chatbot","automated","notification"],mk:["automated"],ev:"...Users are notified when automated decisions are made using this model..."},
+      {id:"AIA-9.1",n:"Risk Management System",cat:"Risk Management",sev:"HIGH",st:"ADDRESSED",sc:0.55,kw:["risk management","lifecycle","documentation","system"],mk:["risk management"],ev:"...A risk assessment was conducted prior to deployment..."},
+      {id:"AIA-9.2",n:"Risk Identification",cat:"Risk Management",sev:"HIGH",st:"PARTIAL",sc:0.18,kw:["risk identification","foreseeable","known risks","analysis"],mk:["known risks"],ev:"...Known risks include: False positives that incorrectly flag benign content..."},
+      {id:"AIA-9.4",n:"Risk Mitigation",cat:"Risk Management",sev:"HIGH",st:"MISSING",sc:0,kw:["mitigation","residual risk","controls","safeguards"],mk:[],ev:""},
+      {id:"AIA-10.1",n:"Data Governance Practices",cat:"Data Governance",sev:"HIGH",st:"ADDRESSED",sc:0.68,kw:["data governance","training data","validation data","data management"],mk:["data governance","training data"],ev:"...Training data was sourced from internal logs with appropriate consent..."},
+      {id:"AIA-10.2",n:"Data Quality",cat:"Data Governance",sev:"HIGH",st:"PARTIAL",sc:0.28,kw:["data quality","representativeness","bias","errors","completeness"],mk:["bias"],ev:"...Data quality checks were applied to remove duplicates and mislabelled examples..."},
+      {id:"AIA-10.5",n:"Personal Data",cat:"Data Governance",sev:"HIGH",st:"ADDRESSED",sc:0.55,kw:["personal data","GDPR","data protection","privacy","processing"],mk:["personal data"],ev:"...Personal data was pseudonymised prior to use..."},
+      {id:"AIA-11.1",n:"Technical Documentation",cat:"Technical Docs",sev:"HIGH",st:"PARTIAL",sc:0.20,kw:["technical documentation","system description","architecture","design"],mk:["system"],ev:"...TestClassifier-v1 Version 1.0.0 Type: Binary text classification..."},
+      {id:"AIA-12.1",n:"Logging and Record-Keeping",cat:"Technical Docs",sev:"HIGH",st:"ADDRESSED",sc:0.71,kw:["logging","record keeping","audit trail","traceability","monitoring"],mk:["logging","monitoring"],ev:"...Prediction logs are retained for 90 days for audit purposes..."},
+      {id:"AIA-14.1",n:"Human Oversight Measures",cat:"Human Oversight",sev:"HIGH",st:"ADDRESSED",sc:0.42,kw:["human oversight","human control","intervention","override","review"],mk:["review"],ev:"...should not be used for high-stakes decisions without human review..."},
+      {id:"AIA-14.4",n:"Override Capability",cat:"Human Oversight",sev:"HIGH",st:"PARTIAL",sc:0.15,kw:["stop","override","interrupt","halt","kill switch"],mk:[],ev:""},
+      {id:"AIA-15.1",n:"Accuracy",cat:"Accuracy/Robustness",sev:"HIGH",st:"ADDRESSED",sc:0.61,kw:["accuracy","performance","metrics","benchmarks","evaluation"],mk:["accuracy","performance","metrics"],ev:"...Accuracy and fairness metrics are tracked via a real-time dashboard..."},
+      {id:"AIA-15.3",n:"Cybersecurity",cat:"Accuracy/Robustness",sev:"HIGH",st:"MISSING",sc:0,kw:["cybersecurity","adversarial","robustness","attack","red team","security"],mk:[],ev:""},
+    ]},
+  iso:{name:"ISO/IEC 42001:2023",version:"2023",cov:41.2,rs:32,rl:"MEDIUM",tot:17,ad:7,pt:8,ms:2,
+    cats:[{n:"Context",tot:2,ad:0,pt:2,ms:0,p:0},{n:"Leadership",tot:2,ad:1,pt:1,ms:0,p:50},{n:"Planning",tot:3,ad:1,pt:1,ms:1,p:33.3},{n:"Support",tot:3,ad:1,pt:2,ms:0,p:33.3},{n:"Operation",tot:3,ad:2,pt:1,ms:0,p:66.7},{n:"Performance",tot:2,ad:1,pt:0,ms:1,p:50},{n:"Improvement",tot:2,ad:1,pt:1,ms:0,p:50}],
+    ctrls:[
+      {id:"ISO42001-4.1",n:"Understanding the Organization",cat:"Context",sev:"MEDIUM",st:"PARTIAL",sc:0.18,kw:["context","organization","issues","stakeholders","environment"],mk:["organization"],ev:"...the organisation's data policy..."},
+      {id:"ISO42001-4.2",n:"Interested Parties",cat:"Context",sev:"MEDIUM",st:"PARTIAL",sc:0.12,kw:["stakeholders","interested parties","requirements","expectations"],mk:["users"],ev:"...The organisation has a feedback mechanism for users to report issues..."},
+      {id:"ISO42001-5.1",n:"Leadership Commitment",cat:"Leadership",sev:"HIGH",st:"PARTIAL",sc:0.20,kw:["leadership","management","commitment","sponsorship","executive"],mk:[],ev:""},
+      {id:"ISO42001-5.2",n:"AI Policy",cat:"Leadership",sev:"HIGH",st:"ADDRESSED",sc:0.55,kw:["policy","AI policy","principles","values","ethics"],mk:["policy"],ev:"...Data governance practices follow the organisation's data policy..."},
+      {id:"ISO42001-6.1",n:"Actions to Address Risk",cat:"Planning",sev:"HIGH",st:"ADDRESSED",sc:0.61,kw:["risk","opportunities","planning","treatment","actions"],mk:["risk"],ev:"...A risk assessment was conducted prior to deployment..."},
+      {id:"ISO42001-6.1.2",n:"AI Risk Assessment",cat:"Planning",sev:"HIGH",st:"PARTIAL",sc:0.22,kw:["risk assessment","identification","analysis","evaluation","register"],mk:["risk assessment"],ev:"...A risk assessment was conducted prior to deployment. Known risks include..."},
+      {id:"ISO42001-6.2",n:"AI Objectives",cat:"Planning",sev:"MEDIUM",st:"MISSING",sc:0,kw:["objectives","goals","KPIs","targets","metrics"],mk:[],ev:""},
+      {id:"ISO42001-7.1",n:"Resources",cat:"Support",sev:"MEDIUM",st:"PARTIAL",sc:0.14,kw:["resources","budget","personnel","infrastructure","tools"],mk:[],ev:""},
+      {id:"ISO42001-7.2",n:"Competence",cat:"Support",sev:"MEDIUM",st:"ADDRESSED",sc:0.38,kw:["competence","training","skills","education","qualifications"],mk:["training"],ev:"...Training data was sourced from internal logs..."},
+      {id:"ISO42001-7.4",n:"Communication",cat:"Support",sev:"MEDIUM",st:"PARTIAL",sc:0.18,kw:["communication","awareness","internal","external","stakeholders"],mk:["users"],ev:"...Users are notified when automated decisions are made..."},
+      {id:"ISO42001-8.1",n:"Operational Planning and Control",cat:"Operation",sev:"HIGH",st:"ADDRESSED",sc:0.55,kw:["operational","processes","controls","lifecycle","deployment"],mk:["deployment"],ev:"...A risk assessment was conducted prior to deployment..."},
+      {id:"ISO42001-8.2",n:"AI System Impact Assessment",cat:"Operation",sev:"HIGH",st:"ADDRESSED",sc:0.42,kw:["impact assessment","pre-deployment","evaluation","review"],mk:["evaluation"],ev:"...Fairness and Bias evaluations were performed..."},
+      {id:"ISO42001-8.4",n:"AI System Documentation",cat:"Operation",sev:"HIGH",st:"PARTIAL",sc:0.28,kw:["documentation","model card","system card","design","training","testing"],mk:["training","testing"],ev:"...This is a synthetic model card used for integration testing..."},
+      {id:"ISO42001-9.1",n:"Monitoring and Measurement",cat:"Performance",sev:"HIGH",st:"ADDRESSED",sc:0.92,kw:["monitoring","measurement","KPIs","metrics","performance","evaluation"],mk:["monitoring","metrics","performance"],ev:"...Accuracy and fairness metrics are tracked via a real-time dashboard..."},
+      {id:"ISO42001-9.2",n:"Internal Audit",cat:"Performance",sev:"MEDIUM",st:"MISSING",sc:0,kw:["audit","internal audit","review","assessment","compliance"],mk:[],ev:""},
+      {id:"ISO42001-10.1",n:"Nonconformity and Corrective Action",cat:"Improvement",sev:"MEDIUM",st:"ADDRESSED",sc:0.55,kw:["corrective action","nonconformity","incident","remediation","improvement"],mk:["incident"],ev:"...An incident response playbook exists for model-related incidents..."},
+      {id:"ISO42001-10.2",n:"Continual Improvement",cat:"Improvement",sev:"MEDIUM",st:"PARTIAL",sc:0.18,kw:["continual improvement","lessons learned","feedback","iteration"],mk:["feedback"],ev:"...The organisation has a feedback mechanism for users to report issues..."},
+    ]}
+}};
+
+let cDoc='sample',cFw='nist',cFilter='all',uploads={};
+
+function donut(p,s=46){const r=s/2-4,c=2*Math.PI*r,f=(p/100)*c,col=p>=70?'#22d3a0':p>=40?'#f5a623':'#ef4444';return`<svg width="${s}" height="${s}"><circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="#232838" stroke-width="4.5"/><circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="${col}" stroke-width="4.5" stroke-dasharray="${f} ${c-f}" stroke-dashoffset="${c/4}" stroke-linecap="round"/></svg>`;}
+
+function toast(msg,spin=true){const t=document.getElementById('toast');document.getElementById('t-msg').textContent=msg;document.getElementById('t-spin').style.display=spin?'block':'none';t.classList.remove('hidden');}
+function hideToast(){document.getElementById('toast').classList.add('hidden');}
+
+function renderMD(md){
+  return md.split('\n').map(l=>{
+    if(l.startsWith('# '))return`<div class="md-h1">${l.slice(2)}</div>`;
+    if(l.startsWith('## '))return`<div class="md-h2">${l.slice(3)}</div>`;
+    if(l.startsWith('- '))return`<div class="md-li">${l.slice(2).replace(/\*\*(.+?)\*\*/g,'<span class="md-bold">$1</span>')}</div>`;
+    if(!l.trim())return'<div class="md-gap"></div>';
+    return`<div class="md-p">${l.replace(/\*\*(.+?)\*\*/g,'<span class="md-bold">$1</span>')}</div>`;
+  }).join('');
+}
+
+function openMC(){document.getElementById('mc-body').innerHTML=renderMD(MC_TEXT);document.getElementById('mc-modal').classList.remove('hidden');}
+function closeMC(){document.getElementById('mc-modal').classList.add('hidden');}
+
+function handleUpload(inp){
+  const file=inp.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const txt=e.target.result,id='doc_'+Date.now();
+    toast('Analysing '+file.name+'...');
+    setTimeout(()=>{
+      const au=simAudit(txt);
+      uploads[id]={name:file.name,size:file.size,content:txt,au};
+      addCard(id,file.name,file.size);
+      selectDoc(id);
+      hideToast();
+      toast('✓ '+file.name+' complete',false);
+      setTimeout(hideToast,2800);
+    },1100);
+  };
+  r.readAsText(file);inp.value='';
+}
+
+function simAudit(txt){
+  const t=txt.toLowerCase();
+  const run=(sets)=>{
+    let a=0,p=0,m=0,tot=0;
+    sets.a.forEach(k=>{tot++;if(t.includes(k))a++;else p++;});
+    sets.p.forEach(k=>{tot++;if(t.includes(k))p++;else m++;});
+    sets.m.forEach(k=>{tot++;if(!t.includes(k))m++;else p++;});
+    return{ad:a,pt:p,ms:m,tot,cov:Math.round(a/tot*1000)/10,rs:Math.min(100,Math.round((m*3+p*1)/tot*100)),rl:m*3+p>=tot*0.45?'HIGH':m*3+p>=tot*0.2?'MEDIUM':'LOW'};
+  };
+  return{
+    nist:run({a:['risk management','policy','governance','monitoring','incident','fairness','bias','security','transparency','testing','evaluation','performance','feedback','deployment'],p:['safety','privacy','data'],m:['roles','responsibilities','scientific','prioritization']}),
+    eu:run({a:['transparency','documentation','logging','accuracy','personal data','human review','risk assessment','training data'],p:['automated','data quality','system','oversight'],m:['mitigation','cybersecurity']}),
+    iso:run({a:['risk','monitoring','metrics','incident','policy','deployment'],p:['organization','training','evaluation','documentation','feedback','communication'],m:['objectives','audit']})
+  };
+}
+
+function addCard(id,name,size){
+  document.querySelectorAll('.doc-card').forEach(c=>c.classList.remove('active'));
+  const sz=size>1024?Math.round(size/1024)+'KB':size+' bytes';
+  const d=document.createElement('div');
+  d.className='doc-card active';d.id='doc-card-'+id;d.onclick=()=>selectDoc(id);
+  d.innerHTML=`<div class="doc-card-name">📄 ${name}</div><div class="doc-card-meta">${sz} · just now</div><div class="doc-card-badges"><span class="fw-badge on">NIST</span><span class="fw-badge on">EU AI Act</span><span class="fw-badge on">ISO 42001</span></div>`;
+  document.getElementById('doc-list').appendChild(d);
+}
+
+function selectDoc(id){
+  cDoc=id;cFw='nist';cFilter='all';
+  document.querySelectorAll('.doc-card').forEach(c=>c.classList.toggle('active',c.id==='doc-card-'+id));
+  render();
+}
+function switchFw(fw){cFw=fw;cFilter='all';document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['nist','eu','iso'][i]===fw));renderInner();}
+function setFilter(f){cFilter=f;document.querySelectorAll('.fb').forEach(b=>b.classList.toggle('active',b.dataset.f===f));renderCtrls();}
+function toggleCtrl(id){const el=document.getElementById('c-'+id);if(el)el.classList.toggle('expanded');}
+
+function render(){
+  if(cDoc!=='sample'){renderUpload();return;}
+  document.getElementById('main').innerHTML=`
+    <div class="anim1">
+      <div class="doc-title">TestClassifier-v1 — Audit Report</div>
+      <div class="doc-meta"><span>📄 sample_model_card.md</span><span>🕐 2026-03-25T03:25 UTC</span><span>🔑 sha256: 78bdd18d04ab...</span><span>0 PII redactions</span></div>
+    </div>
+    <div class="fw-tabs anim2">
+      <button class="tab ${cFw==='nist'?'active':''}" onclick="switchFw('nist')">NIST AI RMF</button>
+      <button class="tab ${cFw==='eu'?'active':''}" onclick="switchFw('eu')">EU AI Act</button>
+      <button class="tab ${cFw==='iso'?'active':''}" onclick="switchFw('iso')">ISO 42001</button>
+    </div>
+    <div id="fw-inner"></div>`;
+  renderInner();
+}
+
+function renderInner(){
+  if(cDoc!=='sample')return;
+  const d=D.sample[cFw];
+  const rc=d.rl==='HIGH'||d.rl==='CRITICAL'?'rh':'rm';
+  document.getElementById('fw-inner').innerHTML=`
+    <div class="summary-row anim3">
+      <div class="sc ${rc}"><div class="glow"></div><div class="sc-label">Risk Score</div><div class="sc-val">${d.rs}<span style="font-size:12px;color:var(--muted)">/100</span></div><div class="sc-sub">${d.rl}</div></div>
+      <div class="sc"><div class="sc-label">Coverage</div><div class="sc-val" style="color:var(--blue)">${d.cov}<span style="font-size:12px;color:var(--muted)">%</span></div><div class="sc-sub">${d.tot} controls</div></div>
+      <div class="sc va"><div class="sc-label">Addressed</div><div class="sc-val">${d.ad}</div><div class="sc-sub">of ${d.tot}</div></div>
+      <div class="sc vp"><div class="sc-label">Partial</div><div class="sc-val">${d.pt}</div><div class="sc-sub">needs work</div></div>
+      <div class="sc vm"><div class="sc-label">Missing</div><div class="sc-val">${d.ms}</div><div class="sc-sub">gaps found</div></div>
+    </div>
+    <div class="rbar anim3">
+      <div class="rbar-label"><span>Risk meter</span><span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${d.rs}/100 — ${d.rl}</span></div>
+      <div class="rbar-track"><div class="rbar-fill" id="rf" style="width:0%"></div></div>
+    </div>
+    <div class="cat-grid anim3">${d.cats.map(c=>`<div class="cc"><div class="cc-name">${c.n}</div><div class="cc-wrap">${donut(c.p)}<div><div class="cc-pct">${c.p.toFixed(0)}%</div><div class="cc-stats"><span class="s-ok">✓${c.ad}</span> <span class="s-pt">~${c.pt}</span> <span class="s-ms">✗${c.ms}</span></div></div></div></div>`).join('')}</div>
+    <div class="ctrl-section anim4">
+      <div class="ctrl-header">
+        <div class="ctrl-title">Controls</div>
+        <div class="filter-row">
+          <button class="fb ${cFilter==='all'?'active':''}" data-f="all" onclick="setFilter('all')">All</button>
+          <button class="fb ${cFilter==='ADDRESSED'?'active':''}" data-f="ADDRESSED" onclick="setFilter('ADDRESSED')">✅ Addressed</button>
+          <button class="fb ${cFilter==='PARTIAL'?'active':''}" data-f="PARTIAL" onclick="setFilter('PARTIAL')">⚠️ Partial</button>
+          <button class="fb ${cFilter==='MISSING'?'active':''}" data-f="MISSING" onclick="setFilter('MISSING')">❌ Missing</button>
+        </div>
+      </div>
+      <div class="ctrl-list" id="cl"></div>
+    </div>`;
+  setTimeout(()=>{const f=document.getElementById('rf');if(f)f.style.width=d.rs+'%';},100);
+  renderCtrls();
+}
+
+function renderCtrls(){
+  if(cDoc!=='sample')return;
+  const d=D.sample[cFw];
+  const list=cFilter==='all'?d.ctrls:d.ctrls.filter(c=>c.st===cFilter);
+  if(!list.length){document.getElementById('cl').innerHTML='<div class="empty">No controls match this filter.</div>';return;}
+  document.getElementById('cl').innerHTML=list.map(c=>{
+    const sid=c.id.replace(/[\.\-]/g,'_');
+    const sf=c.sc>=.35?'':c.sc>=.1?'low':'zero';
+    const kh=c.kw.map(k=>`<span class="kw ${c.mk.includes(k)?'m':''}">${k}</span>`).join('');
+    const eh=c.ev?`<div class="ev">${c.ev}</div>`:'<div style="color:var(--muted);font-size:11px">No evidence found.</div>';
+    return`<div class="cr" id="c-${sid}" onclick="toggleCtrl('${sid}')">
+      <div class="dot ${c.st}"></div>
+      <div class="cid">${c.id}</div>
+      <div><div class="cn">${c.n}</div><div class="ccat">${c.cat}</div></div>
+      <span class="sev sev-${c.sev}">${c.sev}</span>
+      <div style="text-align:right">
+        <span class="slabel ${c.st}">${c.st}</span>
+        <div class="sbar" style="margin-left:auto"><div class="sf ${sf}" style="width:${c.sc*100}%"></div></div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px">${Math.round(c.sc*100)}%</div>
+      </div>
+      <div class="detail"><div class="dd">Keywords matched against document:</div><div class="kws">${kh}</div>${eh}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderUpload(){
+  const doc=uploads[cDoc];const r=doc.au[cFw];
+  const rc=r.rl==='HIGH'?'rh':r.rl==='LOW'?'rl':'rm';
+  document.getElementById('main').innerHTML=`
+    <div class="anim1">
+      <div class="doc-title">${doc.name}</div>
+      <div class="doc-meta"><span>📄 ${doc.name}</span><span>📦 ${doc.size>1024?Math.round(doc.size/1024)+'KB':doc.size+' bytes'}</span><span>🕐 Just now</span><span style="color:var(--amber)">⚡ Keyword analysis</span>
+        <span style="cursor:pointer;color:var(--blue);text-decoration:underline" onclick="showUploadContent('${cDoc}')">View document →</span>
+      </div>
+    </div>
+    <div class="fw-tabs anim2">
+      <button class="tab active" onclick="switchFwUp('nist')">NIST AI RMF</button>
+      <button class="tab" onclick="switchFwUp('eu')">EU AI Act</button>
+      <button class="tab" onclick="switchFwUp('iso')">ISO 42001</button>
+    </div>
+    <div class="summary-row anim3">
+      <div class="sc ${rc}"><div class="glow"></div><div class="sc-label">Risk Score</div><div class="sc-val">${r.rs}<span style="font-size:12px;color:var(--muted)">/100</span></div><div class="sc-sub">${r.rl}</div></div>
+      <div class="sc"><div class="sc-label">Coverage</div><div class="sc-val" style="color:var(--blue)">${r.cov}<span style="font-size:12px;color:var(--muted)">%</span></div><div class="sc-sub">${r.tot} controls</div></div>
+      <div class="sc va"><div class="sc-label">Addressed</div><div class="sc-val">${r.ad}</div><div class="sc-sub">of ${r.tot}</div></div>
+      <div class="sc vp"><div class="sc-label">Partial</div><div class="sc-val">${r.pt}</div><div class="sc-sub">needs work</div></div>
+      <div class="sc vm"><div class="sc-label">Missing</div><div class="sc-val">${r.ms}</div><div class="sc-sub">gaps found</div></div>
+    </div>
+    <div class="rbar anim3">
+      <div class="rbar-label"><span>Risk meter</span><span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${r.rs}/100 — ${r.rl}</span></div>
+      <div class="rbar-track"><div class="rbar-fill" id="rf2" style="width:0%"></div></div>
+    </div>
+    <div class="empty anim4" style="margin-top:24px">
+      <div style="font-size:26px;margin-bottom:9px">🔍</div>
+      <div style="color:var(--text);font-size:14px;margin-bottom:5px">Keyword analysis complete</div>
+      <div style="max-width:380px;margin:0 auto;color:var(--muted)">For full semantic scoring, evidence snippets, and LLM-powered gap narratives, run via the CLI:</div>
+      <code style="font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);padding:8px 14px;border-radius:6px;display:inline-block;margin-top:10px">python -m src.cli audit ${doc.name} --framework nist_ai_rmf</code>
+    </div>`;
+  setTimeout(()=>{const f=document.getElementById('rf2');if(f)f.style.width=r.rs+'%';},100);
+}
+
+function switchFwUp(fw){
+  cFw=fw;
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['nist','eu','iso'][i]===fw));
+  renderUpload();
+}
+
+function showUploadContent(id){
+  const doc=uploads[id];
+  document.getElementById('up-modal-title').textContent='📄 '+doc.name;
+  document.getElementById('up-modal-body').innerHTML=`<pre style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);white-space:pre-wrap;line-height:1.7">${doc.content.substring(0,8000)}${doc.content.length>8000?'\n\n... (truncated)':''}</pre>`;
+  document.getElementById('up-modal').classList.remove('hidden');
+}
+
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');const f=e.dataTransfer.files[0];if(f){handleUpload({files:[f]});}});
+
+render();
+</script>
+</body>
+</html>
